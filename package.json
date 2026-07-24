@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test:unit": "jest --testPathPattern='(?<!integration).*\\.spec\\.ts$'",
+    "test:unit": "jest --testPathIgnorePatterns='integration'",
     "test:integration": "jest --testPathPattern='integration.*\\.spec\\.ts$'",
     "test": "jest",
     "dev": "ts-node src/backend/server.ts",
@@ -40,6 +40,6 @@
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
-    "typescript": "^7.0.2"
+    "typescript": "^5.3.3"
   }
 }
