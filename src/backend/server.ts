@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import sessionsRouter from './routes/sessions';
 
 dotenv.config();
 
@@ -12,6 +13,24 @@ app.use(express.json());
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Routes
+app.use('/api/sessions', sessionsRouter);
+
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const status = err.status || 500;
+  const message = err.message || 'Internal server error';
+  const code = err.code || 'INTERNAL_ERROR';
+
+  res.status(status).json({
+    error: {
+      message,
+      code,
+      status,
+    },
+  });
 });
 
 // Export app for testing
