@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import sessionsRouter from './routes/sessions';
 import storiesRouter from './routes/stories';
 import votesRouter from './routes/votes';
+import exportRouter from './routes/export';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get('/health', (req, res) => {
 app.use('/api/sessions', sessionsRouter);
 app.use('/api', storiesRouter);
 app.use('/api', votesRouter);
+app.use('/api', exportRouter);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
