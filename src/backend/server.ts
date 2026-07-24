@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import sessionsRouter from './routes/sessions';
+import storiesRouter from './routes/stories';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/sessions', sessionsRouter);
+app.use('/api', storiesRouter);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
