@@ -162,7 +162,7 @@ describe('Vote, Chat, and Notification Integration', () => {
       );
 
       const messageBroadcast = mockRoom.emit.mock.calls.find(
-        (call) => call[0] === 'message:sent'
+        (call: any) => call[0] === 'message:sent'
       );
       expect(messageBroadcast).toBeDefined();
       expect(messageBroadcast[1]).toEqual(
@@ -202,7 +202,7 @@ describe('Vote, Chat, and Notification Integration', () => {
       notificationService.broadcastVotesRevealed('session-1', 't1', average, median);
 
       const votesRevealedCall = mockRoom.emit.mock.calls.find(
-        (call) => call[0] === 'votes:revealed'
+        (call: any[]) => call[0] === 'votes:revealed'
       );
       expect(votesRevealedCall[1]).toEqual(
         expect.objectContaining({
@@ -244,7 +244,7 @@ describe('Vote, Chat, and Notification Integration', () => {
       notificationService.broadcastSessionClosed('session-1');
 
       expect(mockIO.to).toHaveBeenCalledWith('session:session-1');
-      const closedCall = mockRoom.emit.mock.calls.find((call) => call[0] === 'session:closed');
+      const closedCall = mockRoom.emit.mock.calls.find((call: any[]) => call[0] === 'session:closed');
       expect(closedCall).toBeDefined();
     });
 
@@ -277,7 +277,7 @@ describe('Vote, Chat, and Notification Integration', () => {
       );
 
       const messageBroadcast = mockRoom.emit.mock.calls.find(
-        (call) => call[0] === 'message:sent'
+        (call: any) => call[0] === 'message:sent'
       );
       expect(messageBroadcast[1].content).toHaveLength(500);
     });
