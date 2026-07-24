@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const sessions_1 = __importDefault(require("./routes/sessions"));
 const stories_1 = __importDefault(require("./routes/stories"));
+const votes_1 = __importDefault(require("./routes/votes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api/sessions', sessions_1.default);
 app.use('/api', stories_1.default);
+app.use('/api', votes_1.default);
 // Error handling middleware
 app.use((err, req, res, next) => {
     const status = err.status || 500;
