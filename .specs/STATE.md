@@ -66,35 +66,47 @@
 
 ## Handoff Snapshot
 
-**Phase**: Design phase complete; ready for Tasks phase
+**Feature**: Planning Poker App (`.specs/features/planning-poker/`)  
+**Phase**: Execute (tlc-spec-driven skill)  
+**Status**: Batch 1 (T1–T10, Phases 1+2) running in background  
 
 **What's Done**:
 - ✅ Spec.md written with 5 P1 stories, 2 P2 stories, 1 P3, 43 total requirements
-- ✅ All gray areas resolved; assumptions documented
-- ✅ 10 critical architectural decisions logged (AD-001 through AD-010)
-- ✅ Architecture designed: 3-tier (Vue 3 frontend → Express + Socket.io backend → PostgreSQL)
-- ✅ 11 backend services defined with clear interfaces + test points
-- ✅ 5 frontend Vue components designed (SessionPanel, StoryPanel, VotingPanel, ChatPanel, SessionExport)
-- ✅ Prisma data models defined with full relationships (Session → Epic → Story → Task → Vote)
-- ✅ REST + WebSocket API designed (19 endpoints, 12 WebSocket events)
-- ✅ Error handling strategy documented (8 scenarios + mitigations)
-- ✅ TDD strategy locked (unit → integration → E2E with mocks)
-- ✅ 9 architectural risks identified with mitigations
+- ✅ Design complete: 3-tier architecture, 11 services, 5 Vue components, REST + WebSocket API
+- ✅ Tasks.md created: 28 atomic tasks across 6 phases with full dependency graph
+- ✅ Packing strategy: 3 subagent batches (~10 tasks each, whole phases per worker)
+- ✅ Batch 1 worker dispatched (agentId: a631039acbde46092)
 
-**What's Next**:
-- Execute phase: Distribute to subagent workers (4 batches of ~7 tasks each)
-- Verification: Code review agents validate each task against spec
-- Final: Comprehensive spec validation + lessons distillation
+**Currently In-Progress**:
+- 🔄 **Batch 1** (Phases 1+2, T1–T10) — Backend foundation + services
+  - T1: Node.js/TypeScript/Express/Prisma setup
+  - T2: Prisma schema (7 models)
+  - T3: Database migration + connection test
+  - T4: Env config + connection pooling
+  - T5: Logger + error handling
+  - T6: SessionService (7 methods)
+  - T7: StoryService (9 methods)
+  - T8: Integration test (Session+Story)
+  - T9: Utility functions (markdown, slug, validators)
+  - T10: ExportService
+  - Worker follows: implement → tests → gate → atomic commit per task
 
-**Key Constraints**:
-- MVP must include: sessions, stories/epics/tasks, voting, chat, export (all P1)
-- P2 features (customization, settings) deferred if budget tight
-- Real-time requirement: <500ms latency for chat and vote updates
+**Next Steps (on resume)**:
+1. Await Batch 1 completion notification
+2. Dispatch Batch 2 (Phases 3+4, T11–T20) — Voting & Chat services + API routes
+3. Dispatch Batch 3 (Phases 5+6, T21–T28) — WebSocket + Vue 3 frontend
+4. Dispatch Verifier — independent validation + spec-anchored check + discrimination sensor
+5. Generate `/run-planning-poker` skill (after Verifier passes)
 
-**Context Budget**:
-- Spec: ~8k tokens
-- STATE: ~2k tokens
-- Design/Tasks/Execute: ~180k available
+**Blockers**: None  
+**Uncommitted files**: None (Batch 1 worker handles commits atomically per task)  
+**Branch**: main  
+
+**Key Notes**:
+- User preference: Full autonomy on code decisions, no questions needed
+- Batch workers: sequential execution (Batch 1 → Batch 2 → Batch 3 → Verifier)
+- Test gates: Quick (unit), Full (integration), Build (all tests + lint)
+- Spec coverage: Every task's tests derived from "Done when" criteria + spec ACs
 
 ---
 
