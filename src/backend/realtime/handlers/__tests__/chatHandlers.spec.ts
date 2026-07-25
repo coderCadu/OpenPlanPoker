@@ -78,7 +78,7 @@ describe('chatHandlers', () => {
       const handler = eventListeners['chat:send'];
       await handler({ content: '' });
 
-      expect(socket.emit).toHaveBeenCalledWith('error:chat', { message: 'Invalid message content' });
+      expect(socket.emit).toHaveBeenCalledWith('error:chat', { message: 'Missing message content' });
       expect(chatService.saveMessage).not.toHaveBeenCalled();
     });
 

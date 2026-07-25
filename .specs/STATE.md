@@ -95,7 +95,7 @@
 1. Await Batch 1 completion notification
 2. Dispatch Batch 2 (Phases 3+4, T11–T20) — Voting & Chat services + API routes
 3. Dispatch Batch 3 (Phases 5+6, T21–T28) — WebSocket + Vue 3 frontend
-4. Dispatch Verifier — independent validation + spec-anchored check + discrimination sensor
+4. ✅ **Verifier dispatched** (agentId: aa53bb87a7a7132e5) — waiting for Batch 3 completion, then validates all 28 tasks
 5. Generate `/run-planning-poker` skill (after Verifier passes)
 
 **Blockers**: None  
