@@ -32,7 +32,7 @@ describe('VotingPanel', () => {
     expect(wrapper.text()).toContain('Current Task')
   })
 
-  it('should display fibonacci cards', () => {
+  it('should display fibonacci cards', async () => {
     const wrapper = mount(VotingPanel)
     const store = useSessionStore()
     store.setSession({
@@ -43,12 +43,45 @@ describe('VotingPanel', () => {
       createdAt: new Date(),
       updatedAt: new Date()
     })
+    store.addStory({
+      id: 'epic1',
+      title: 'Epic',
+      stories: [
+        {
+          id: 'story1',
+          title: 'Story',
+          tasks: [{ id: 'task1', title: 'Task' }]
+        }
+      ]
+    })
+    await wrapper.vm.$nextTick()
     const cards = wrapper.findAll('.card')
     expect(cards.length).toBe(9)
   })
 
-  it('should have fibonacci cards with correct values', () => {
+  it('should have fibonacci cards with correct values', async () => {
     const wrapper = mount(VotingPanel)
+    const store = useSessionStore()
+    store.setSession({
+      id: '1',
+      slug: 'test',
+      name: 'Test',
+      status: 'active' as const,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
+    store.addStory({
+      id: 'epic1',
+      title: 'Epic',
+      stories: [
+        {
+          id: 'story1',
+          title: 'Story',
+          tasks: [{ id: 'task1', title: 'Task' }]
+        }
+      ]
+    })
+    await wrapper.vm.$nextTick()
     const expectedCards = ['1', '2', '3', '5', '8', '13', '21', '?', '☕']
     const cardTexts = wrapper.findAll('.card').map(c => c.text())
     expectedCards.forEach(card => {

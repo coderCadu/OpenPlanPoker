@@ -110,6 +110,10 @@ describe('StoryPanel', () => {
       ]
     })
     await wrapper.vm.$nextTick()
+    // Expand epic to reveal stories
+    const vm = wrapper.vm as any
+    vm.toggleEpic('1')
+    await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Story 1')
     expect(wrapper.text()).toContain('Story 2')
   })
@@ -133,6 +137,13 @@ describe('StoryPanel', () => {
         }
       ]
     })
+    await wrapper.vm.$nextTick()
+    // Expand epic to reveal stories
+    const vm = wrapper.vm as any
+    vm.toggleEpic('1')
+    await wrapper.vm.$nextTick()
+    // Expand story to reveal tasks
+    vm.toggleStory('s1')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Task 1')
   })
