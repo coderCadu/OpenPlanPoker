@@ -3,16 +3,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.httpServer = exports.io = void 0;
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const http_1 = require("http");
+const socket_io_1 = require("socket.io");
 const sessions_1 = __importDefault(require("./routes/sessions"));
 const stories_1 = __importDefault(require("./routes/stories"));
 const votes_1 = __importDefault(require("./routes/votes"));
 const export_1 = __importDefault(require("./routes/export"));
+const socketServer_1 = require("./realtime/socketServer");
+const SessionService_1 = require("./services/SessionService");
 const logger_1 = require("./utils/logger");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
+// Create HTTP server for Socket.io
+const httpServer = (0, http_1.createServer)(app);
+exports.httpServer = httpServer;
+const io = new socket_io_1.Server(httpServer, {
+    cors: {
+        origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
+        methods: ['GET', 'POST'],
+    },
+});
+exports.io = io;
+// Initialize Socket.io server with session service
+const sessionService = new SessionService_1.SessionService();
+(0, socketServer_1.initializeSocketServer)(io, sessionService);
 // Middleware
 app.use(express_1.default.json());
 // CORS middleware
@@ -84,12 +102,13 @@ app.use((req, res) => {
         },
     });
 });
-// Export app for testing
+// Export app and io for testing
 exports.default = app;
 // Only start server if this file is run directly
 if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+    httpServer.listen(PORT, () => {
+        console.log(`Server with WebSocket running on port ${PORT}`);
+        logger_1.logger.info({ port: PORT }, 'HTTP and WebSocket server started');
     });
 }
 //# sourceMappingURL=server.js.map
