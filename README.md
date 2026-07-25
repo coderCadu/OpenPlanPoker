@@ -13,6 +13,12 @@ Open Plan Poker enables distributed teams to collaboratively estimate user stori
 - Chat integration
 - Automatic session expiration (30 minutes inactivity)
 
+## Screenshots
+
+| Session | Voting | Story Hierarchy |
+| --- | --- | --- |
+| ![Create/join session](docs/screenshots/session.png) | ![Voting panel with a card selected](docs/screenshots/voting.png) | ![Epic/story/task hierarchy](docs/screenshots/stories.png) |
+
 ## Stack
 
 - **Frontend**: Vue 3 with Vite
