@@ -1,6 +1,6 @@
 <template>
   <div class="session-panel">
-    <div class="session-forms">
+    <div v-if="!store.activeSession" class="session-forms">
       <div class="create-session-form">
         <h2>Create Session</h2>
         <form @submit.prevent="createSession">
@@ -129,116 +129,147 @@ const leaveSession = async (pseudonym: string) => {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-xl);
+  width: 100%;
 }
 
 .session-forms {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: var(--space-xl);
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 .create-session-form,
 .join-session-form {
-  padding: 1.5rem;
-  background: white;
+  padding: var(--space-xl);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+input::placeholder {
+  color: var(--text-muted);
 }
 
 input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 4px rgba(74, 144, 226, 0.2);
+  border-color: var(--accent);
 }
 
 button {
-  padding: 0.75rem 1rem;
-  background-color: #4a90e2;
-  color: white;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  color: var(--bg-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 button:hover:not(:disabled) {
-  background-color: #357abd;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 button:disabled {
-  background-color: #ccc;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
 .btn-leave {
-  background-color: #e74c3c;
-  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--danger);
+  padding: 0.4rem 0.75rem;
   font-size: 0.875rem;
 }
 
-.btn-leave:hover {
-  background-color: #c0392b;
+.btn-leave:hover:not(:disabled) {
+  border-color: var(--danger);
+  box-shadow: none;
+  transform: none;
 }
 
 .error-message {
-  padding: 1rem;
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  padding: var(--space-md);
+  background-color: rgba(224, 120, 86, 0.12);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  margin-bottom: var(--space-md);
 }
 
 .session-info {
-  padding: 1.5rem;
-  background: white;
+  padding: var(--space-xl);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.session-info h2 {
+  color: var(--text-primary);
+}
+
+.session-info p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 .participants {
-  margin-top: 1.5rem;
+  margin-top: var(--space-xl);
 }
 
 .participants ul {
   list-style: none;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
 .participant-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
+  padding: var(--space-sm);
+  background-color: var(--bg-tertiary);
+  border-radius: 6px;
+  color: var(--text-primary);
 }
 
 h2 {
-  margin-bottom: 1rem;
-  color: #333;
+  margin-bottom: var(--space-md);
+  color: var(--text-primary);
 }
 
 h3 {
   margin-top: 0;
-  margin-bottom: 1rem;
-  color: #555;
+  margin-bottom: var(--space-md);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {

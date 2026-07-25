@@ -35,7 +35,7 @@
         <div class="results">
           <div v-for="vote in currentVotes" :key="`${vote.participantId}`" class="vote-result">
             <span class="participant">{{ vote.participantName }}</span>
-            <span class="card">{{ vote.card }}</span>
+            <span class="vote-card">{{ vote.card }}</span>
           </div>
         </div>
 
@@ -155,210 +155,218 @@ const confirmEstimate = () => {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-xl);
 }
 
 .empty-state {
-  padding: 2rem;
+  padding: var(--space-2xl);
   text-align: center;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .voting-container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-2xl);
 }
 
-.task-info {
-  background: white;
-  padding: 1.5rem;
+.task-info,
+.voting-section,
+.results-section {
+  background: var(--bg-secondary);
+  padding: var(--space-xl);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .task-title {
   font-size: 1.25rem;
-  font-weight: 500;
-  color: #333;
-  margin-top: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: var(--space-md);
 }
 
 .no-task {
-  color: #999;
+  color: var(--text-muted);
   font-style: italic;
-}
-
-.voting-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .fibonacci-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
 }
 
 .card {
-  padding: 1rem;
-  background-color: #f0f0f0;
-  border: 2px solid #ddd;
-  border-radius: 8px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
   cursor: pointer;
-  font-weight: 500;
-  font-size: 1.1rem;
-  transition: all 0.2s;
+  font-weight: 700;
+  font-size: 1.5rem;
+  transition: all 0.2s var(--ease-bounce);
 }
 
 .card:hover {
-  border-color: #4a90e2;
-  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+  border-color: var(--accent);
+  background: linear-gradient(135deg, #2a3442, #353f52);
+  transform: translateY(-2px);
 }
 
 .card.selected {
-  background-color: #4a90e2;
-  color: white;
-  border-color: #357abd;
+  border-color: var(--accent-light);
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: var(--bg-primary);
+  box-shadow: 0 8px 24px rgba(212, 165, 116, 0.25);
+  transform: scale(1.05) translateY(-4px);
 }
 
 .vote-confirmation {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #d4edda;
-  border-radius: 4px;
-  border: 1px solid #c3e6cb;
-  color: #155724;
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background-color: rgba(106, 185, 134, 0.12);
+  border-radius: 6px;
+  border: 1px solid var(--success);
+  color: var(--text-primary);
 }
 
 .btn-clear {
-  margin-top: 0.75rem;
+  margin-top: var(--space-sm);
   padding: 0.5rem 1rem;
-  background-color: #ffc107;
-  color: #333;
-  border: none;
-  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-clear:hover {
-  background-color: #e0a800;
-}
-
-.results-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent);
 }
 
 .results {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin: 1rem 0;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
 }
 
 .vote-result {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background-color: #f5f5f5;
-  border-radius: 4px;
+  padding: var(--space-sm);
+  background-color: var(--bg-tertiary);
+  border-radius: 6px;
 }
 
 .participant {
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.card {
-  background-color: #e8f4f8;
+.vote-card {
+  background-color: var(--bg-secondary);
   padding: 0.25rem 0.75rem;
-  border-radius: 3px;
-  color: #2980b9;
+  border-radius: 4px;
+  color: var(--accent-light);
+  font-weight: 700;
 }
 
 .statistics {
   display: flex;
-  gap: 2rem;
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 4px;
+  gap: var(--space-2xl);
+  margin: var(--space-xl) 0;
+  padding: var(--space-md);
+  background-color: var(--bg-tertiary);
+  border-radius: 6px;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .stat span {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .stat strong {
-  font-size: 1.5rem;
-  color: #333;
+  font-size: 1.75rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .confirm-section {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
 }
 
 .estimate-input {
   flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
 }
 
 .estimate-input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 4px rgba(74, 144, 226, 0.2);
+  border-color: var(--accent);
 }
 
 .btn-confirm {
   padding: 0.75rem 1.5rem;
-  background-color: #27ae60;
-  color: white;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  color: var(--bg-primary);
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-confirm:hover {
-  background-color: #229954;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
 }
 
 .completion-status {
-  padding: 1rem;
+  padding: var(--space-md);
   text-align: center;
-  background: #f9f9f9;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 8px;
 }
 
 .all-done {
-  color: #27ae60;
-  font-weight: 500;
+  color: var(--success);
+  font-weight: 600;
   font-size: 1.1rem;
 }
 
 h2,
 h3 {
-  margin-bottom: 1rem;
-  color: #333;
+  margin-bottom: var(--space-md);
+  color: var(--text-primary);
 }
 </style>
