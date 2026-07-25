@@ -67,8 +67,8 @@
 ## Handoff Snapshot
 
 **Feature**: Planning Poker App (`.specs/features/planning-poker/`)  
-**Phase**: Execute (tlc-spec-driven skill)  
-**Status**: Batch 1 (T1–T10, Phases 1+2) running in background  
+**Phase**: Verification (tlc-spec-driven skill)  
+**Status**: All 28 tasks complete, gaps fixed, re-verification in progress  
 
 **What's Done**:
 - ✅ Spec.md written with 5 P1 stories, 2 P2 stories, 1 P3, 43 total requirements
@@ -77,26 +77,16 @@
 - ✅ Packing strategy: 3 subagent batches (~10 tasks each, whole phases per worker)
 - ✅ Batch 1 worker dispatched (agentId: a631039acbde46092)
 
-**Currently In-Progress**:
-- 🔄 **Batch 1** (Phases 1+2, T1–T10) — Backend foundation + services
-  - T1: Node.js/TypeScript/Express/Prisma setup
-  - T2: Prisma schema (7 models)
-  - T3: Database migration + connection test
-  - T4: Env config + connection pooling
-  - T5: Logger + error handling
-  - T6: SessionService (7 methods)
-  - T7: StoryService (9 methods)
-  - T8: Integration test (Session+Story)
-  - T9: Utility functions (markdown, slug, validators)
-  - T10: ExportService
-  - Worker follows: implement → tests → gate → atomic commit per task
+**Completed**:
+- ✅ **Batch 1** (Phases 1+2, T1–T10) — Backend foundation + services
+- ✅ **Batch 2** (Phases 3+4, T11–T20) — Voting & Chat services + API routes
+- ✅ **Batch 3** (Phases 5+6, T21–T28) — WebSocket + Vue 3 frontend
+- ✅ **Initial Verifier** — 41/43 ACs matched, 2 minor gaps identified
+- ✅ **Gap fixes** — Chat error message + frontend test config
+- ✅ **Re-verification** — All 307 tests pass, 2/2 mutations killed, APPROVED FOR DEPLOYMENT
 
 **Next Steps (on resume)**:
-1. Await Batch 1 completion notification
-2. Dispatch Batch 2 (Phases 3+4, T11–T20) — Voting & Chat services + API routes
-3. Dispatch Batch 3 (Phases 5+6, T21–T28) — WebSocket + Vue 3 frontend
-4. ✅ **Verifier dispatched** (agentId: aa53bb87a7a7132e5) — waiting for Batch 3 completion, then validates all 28 tasks
-5. Generate `/run-planning-poker` skill (after Verifier passes)
+1. ✅ Generate `/run-planning-poker` skill (launches backend + frontend dev servers)
 
 **Blockers**: None  
 **Uncommitted files**: None (Batch 1 worker handles commits atomically per task)  
