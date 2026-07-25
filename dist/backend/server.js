@@ -8,11 +8,44 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const sessions_1 = __importDefault(require("./routes/sessions"));
 const stories_1 = __importDefault(require("./routes/stories"));
 const votes_1 = __importDefault(require("./routes/votes"));
+const export_1 = __importDefault(require("./routes/export"));
+const logger_1 = require("./utils/logger");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express_1.default.json());
+// CORS middleware
+app.use((req, res, next) => {
+    const allowedOrigins = ['localhost', 'localhost:3000', 'localhost:5173', '127.0.0.1'];
+    const origin = req.headers.origin || '';
+    if (allowedOrigins.some((allowed) => origin.includes(allowed)) ||
+        process.env.NODE_ENV === 'development') {
+        res.header('Access-Control-Allow-Origin', origin || '*');
+    }
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    }
+    else {
+        next();
+    }
+});
+// Logging middleware
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        logger_1.logger.info({
+            method: req.method,
+            path: req.path,
+            status: res.statusCode,
+            duration,
+        }, `${req.method} ${req.path} ${res.statusCode}`);
+    });
+    next();
+});
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
@@ -21,16 +54,33 @@ app.get('/health', (req, res) => {
 app.use('/api/sessions', sessions_1.default);
 app.use('/api', stories_1.default);
 app.use('/api', votes_1.default);
+app.use('/api', export_1.default);
 // Error handling middleware
 app.use((err, req, res, next) => {
     const status = err.status || 500;
     const message = err.message || 'Internal server error';
     const code = err.code || 'INTERNAL_ERROR';
+    logger_1.logger.error({
+        error: err.message,
+        status,
+        path: req.path,
+        method: req.method,
+    }, 'Request error');
     res.status(status).json({
         error: {
             message,
             code,
             status,
+        },
+    });
+});
+// 404 handler (must be last)
+app.use((req, res) => {
+    res.status(404).json({
+        error: {
+            message: 'Route not found',
+            code: 'NOT_FOUND',
+            status: 404,
         },
     });
 });

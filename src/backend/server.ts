@@ -1,15 +1,32 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import sessionsRouter from './routes/sessions';
 import storiesRouter from './routes/stories';
 import votesRouter from './routes/votes';
 import exportRouter from './routes/export';
+import { initializeSocketServer } from './realtime/socketServer';
+import { SessionService } from './services/SessionService';
 import { logger } from './utils/logger';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Create HTTP server for Socket.io
+const httpServer = createServer(app);
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Initialize Socket.io server with session service
+const sessionService = new SessionService();
+initializeSocketServer(io, sessionService);
 
 // Middleware
 app.use(express.json());
@@ -101,12 +118,14 @@ app.use((req: express.Request, res: express.Response) => {
   });
 });
 
-// Export app for testing
+// Export app and io for testing
 export default app;
+export { io, httpServer };
 
 // Only start server if this file is run directly
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  httpServer.listen(PORT, () => {
+    console.log(`Server with WebSocket running on port ${PORT}`);
+    logger.info({ port: PORT }, 'HTTP and WebSocket server started');
   });
 }
