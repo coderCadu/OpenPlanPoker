@@ -242,88 +242,100 @@ const setStoryFormValue = (epicId: string, event: Event) => {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-xl);
 }
 
 .story-controls {
-  background: white;
-  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: var(--space-xl);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .control-buttons {
   display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
+  gap: var(--space-md);
+  margin: var(--space-md) 0;
 }
 
 .btn-primary,
 .btn-secondary {
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-primary {
-  background-color: #4a90e2;
-  color: white;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  border: none;
+  color: var(--bg-primary);
 }
 
 .btn-primary:hover {
-  background-color: #357abd;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
 }
 
 .btn-secondary {
-  background-color: #27ae60;
-  color: white;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-  background-color: #229954;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn-delete {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;
+  transition: all 0.2s;
 }
 
 .btn-delete:hover {
-  background-color: #c0392b;
+  border-color: var(--danger);
 }
 
 .form-container {
-  margin-top: 1rem;
+  margin-top: var(--space-md);
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-sm);
 }
 
 input,
 textarea {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
   font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
 input:focus,
 textarea:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 4px rgba(74, 144, 226, 0.2);
+  border-color: var(--accent);
 }
 
 textarea {
@@ -333,45 +345,46 @@ textarea {
 .hierarchy-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 .empty-state {
-  padding: 2rem;
+  padding: var(--space-2xl);
   text-align: center;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .epic-item,
 .story-item {
-  background: white;
+  background: var(--bg-tertiary);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid var(--accent);
+  transition: all 0.3s var(--ease-bounce);
+}
+
+.epic-item:hover,
+.story-item:hover {
+  background: #2f3a4d;
+  border-left-color: var(--accent-light);
+  transform: translateX(4px);
 }
 
 .epic-header,
 .story-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: var(--space-sm);
+  padding: var(--space-md);
   cursor: pointer;
-  background-color: #f9f9f9;
-  border-radius: 8px 8px 0 0;
   user-select: none;
 }
 
 .story-header {
-  padding: 0.75rem 1rem;
-  margin-left: 2rem;
-  background-color: #fbfbfb;
-}
-
-.epic-header:hover,
-.story-header:hover {
-  background-color: #f0f0f0;
+  padding: var(--space-sm) var(--space-md);
+  margin-left: var(--space-2xl);
 }
 
 .toggle-icon {
@@ -379,51 +392,52 @@ textarea {
   width: 1rem;
   text-align: center;
   font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 .epic-title,
 .story-title,
 .task-title {
   flex: 1;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .estimate {
-  background-color: #e8f4f8;
+  background-color: var(--bg-secondary);
   padding: 0.25rem 0.5rem;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 0.875rem;
-  color: #2980b9;
+  color: var(--accent-light);
 }
 
 .epic-content {
-  padding: 1rem;
-  border-top: 1px solid #eee;
+  padding: var(--space-md);
+  border-top: 1px solid var(--border);
 }
 
 .story-content {
-  padding: 0.75rem 1rem;
-  background-color: #fafafa;
+  padding: var(--space-sm) var(--space-md);
 }
 
 .add-story-form,
 .add-task-form {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-md);
 }
 
 .task-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  margin-left: 2rem;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  margin-left: var(--space-2xl);
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  margin-bottom: var(--space-xs);
 }
 
 h2 {
-  margin: 0 0 1rem 0;
-  color: #333;
+  margin: 0 0 var(--space-md) 0;
+  color: var(--text-primary);
 }
 </style>
