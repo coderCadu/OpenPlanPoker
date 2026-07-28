@@ -28,7 +28,13 @@
           <p>Your vote: <strong>{{ myVote }}</strong></p>
           <button @click="clearVote" class="btn-clear">Change Vote</button>
         </div>
+
+        <div v-if="!allVotesRevealed" class="reveal-section">
+          <button @click="revealVotes" class="btn-confirm">Reveal Votes</button>
+        </div>
       </div>
+
+      <div v-if="error" class="error-message">{{ error }}</div>
 
       <div v-if="allVotesRevealed" class="results-section">
         <h3>Vote Results</h3>
@@ -65,19 +71,30 @@
         <p v-if="unestimatedCount > 0">{{ unestimatedCount }} tasks remaining</p>
         <p v-else class="all-done">All Done! ✓</p>
       </div>
+
+      <ChatPanel />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useSessionStore } from '../stores/sessionStore'
+import {
+  castVote as apiCastVote,
+  updateVote as apiUpdateVote,
+  revealVotes as apiRevealVotes,
+  confirmEstimate as apiConfirmEstimate,
+} from '../api/client'
+import { getSocket } from '../api/socket'
+import ChatPanel from './ChatPanel.vue'
 
 const store = useSessionStore()
 const fibonacciCards = ['1', '2', '3', '5', '8', '13', '21', '?', '☕']
 const myVote = ref<string | null>(null)
-const allVotesRevealed = ref(false)
+const myVoteId = ref<string | null>(null)
 const finalEstimate = ref('')
+const error = ref('')
 
 const currentTask = computed(() => {
   for (const epic of store.stories) {
@@ -92,9 +109,27 @@ const currentTask = computed(() => {
   return null
 })
 
+// Reset local voting state whenever the active task changes
+watch(currentTask, (task) => {
+  myVote.value = null
+  myVoteId.value = null
+  finalEstimate.value = ''
+  if (task && store.currentUser) {
+    const existing = store.votes.find(v => v.taskId === task.id && v.participantId === store.currentUser!.id)
+    if (existing) {
+      myVote.value = existing.card
+      myVoteId.value = existing.id
+    }
+  }
+})
+
 const currentVotes = computed(() => {
   if (!currentTask.value) return []
   return store.getVotesByTask(currentTask.value.id)
+})
+
+const allVotesRevealed = computed(() => {
+  return currentTask.value ? store.isTaskRevealed(currentTask.value.id) : false
 })
 
 const statistics = computed(() => {
@@ -122,31 +157,75 @@ const unestimatedCount = computed(() => {
 
 const castVote = (card: string) => {
   if (!currentTask.value || !store.currentUser) return
+  const taskId = currentTask.value.id
+  const participant = store.currentUser
   myVote.value = card
-  store.addVote({
-    id: `vote-${Date.now()}`,
-    taskId: currentTask.value.id,
-    participantId: store.currentUser.id,
-    participantName: store.currentUser.pseudonym,
-    card: card as any,
-    timestamp: new Date()
-  })
+
+  const existingIdx = store.votes.findIndex(v => v.taskId === taskId && v.participantId === participant.id)
+  if (existingIdx >= 0) {
+    store.votes[existingIdx].card = card as any
+  } else {
+    store.addVote({
+      id: `vote-${Date.now()}`,
+      taskId,
+      participantId: participant.id,
+      participantName: participant.pseudonym,
+      card: card as any,
+      timestamp: new Date()
+    })
+  }
+
+  if (!store.activeSession) return
+
+  if (myVoteId.value) {
+    apiUpdateVote(myVoteId.value, card).catch(() => { error.value = 'Failed to update vote' })
+  } else {
+    apiCastVote(taskId, participant.id, store.activeSession.id, card)
+      .then(vote => { myVoteId.value = vote.id })
+      .catch(() => { error.value = 'Failed to cast vote' })
+  }
 }
 
 const clearVote = () => {
   myVote.value = null
 }
 
-const revealVotes = () => {
-  allVotesRevealed.value = true
+const revealVotes = async () => {
+  if (!currentTask.value || !store.activeSession) return
+  try {
+    const result = await apiRevealVotes(currentTask.value.id, store.activeSession.id)
+    store.setVotesForTask(
+      currentTask.value.id,
+      result.votes.map(v => ({
+        id: `${currentTask.value!.id}-${v.participantId}`,
+        taskId: currentTask.value!.id,
+        participantId: v.participantId,
+        participantName:
+          store.currentUser?.id === v.participantId
+            ? store.currentUser.pseudonym
+            : store.participants.find(p => p.id === v.participantId)?.pseudonym || v.participantId,
+        card: v.card as any,
+        timestamp: new Date()
+      }))
+    )
+    store.markTaskRevealed(currentTask.value.id)
+    getSocket()?.emit('vote:reveal', { taskId: currentTask.value.id })
+  } catch (err) {
+    error.value = 'Failed to reveal votes'
+  }
 }
 
-const confirmEstimate = () => {
+const confirmEstimate = async () => {
   if (!currentTask.value || !finalEstimate.value) return
-  currentTask.value.estimate = Number(finalEstimate.value)
-  myVote.value = null
-  allVotesRevealed.value = false
-  finalEstimate.value = ''
+  const task = currentTask.value
+  try {
+    await apiConfirmEstimate(task.id, Number(finalEstimate.value))
+    task.estimate = Number(finalEstimate.value)
+    myVote.value = null
+    finalEstimate.value = ''
+  } catch (err) {
+    error.value = 'Failed to confirm estimate'
+  }
 }
 </script>
 
@@ -252,6 +331,18 @@ const confirmEstimate = () => {
 
 .btn-clear:hover {
   border-color: var(--accent);
+}
+
+.reveal-section {
+  margin-top: var(--space-md);
+}
+
+.error-message {
+  padding: var(--space-md);
+  background-color: rgba(224, 120, 86, 0.12);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
 }
 
 .results {

@@ -32,7 +32,7 @@ export { serviceWrapper };
 router.post('/tasks/:taskId/vote', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const taskId = req.params.taskId as string;
-    const { participantId, sessionId, card } = req.body;
+    const { participantId, sessionId, card } = req.body || {};
 
     // Validate input
     if (!participantId) {
@@ -69,7 +69,7 @@ router.post('/tasks/:taskId/vote', async (req: Request, res: Response, next: Nex
 router.put('/votes/:voteId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const voteId = req.params.voteId as string;
-    const { card } = req.body;
+    const { card } = req.body || {};
 
     // Validate input
     if (!card) {
@@ -122,7 +122,7 @@ router.get('/tasks/:taskId/votes', async (req: Request, res: Response, next: Nex
 router.post('/tasks/:taskId/reveal', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const taskId = req.params.taskId as string;
-    const { sessionId } = req.body;
+    const { sessionId } = req.body || {};
 
     // Validate input
     if (!sessionId) {

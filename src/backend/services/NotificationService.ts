@@ -16,12 +16,14 @@ export class NotificationService {
    * Broadcast when a participant joins a session
    * @param sessionId Session ID
    * @param pseudonym Participant's pseudonym
+   * @param participantId Participant's ID (DB record)
    */
-  broadcastParticipantJoined(sessionId: string, pseudonym: string): void {
+  broadcastParticipantJoined(sessionId: string, pseudonym: string, participantId?: string): void {
     try {
       const room = `session:${sessionId}`;
       this.io.to(room).emit('participant:joined', {
         pseudonym,
+        participantId,
         timestamp: new Date(),
       });
 

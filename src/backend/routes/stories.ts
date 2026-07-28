@@ -33,7 +33,7 @@ export { serviceWrapper };
  */
 router.post('/epics', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { sessionId, title, description } = req.body;
+    const { sessionId, title, description } = req.body || {};
 
     // Validate input
     if (!sessionId) {
@@ -79,7 +79,7 @@ router.delete('/epics/:epicId', async (req: Request, res: Response, next: NextFu
 router.post('/epics/:epicId/stories', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const epicId = req.params.epicId as string;
-    const { sessionId, title, description } = req.body;
+    const { sessionId, title, description } = req.body || {};
 
     // Validate input
     if (!sessionId) {
@@ -125,7 +125,7 @@ router.delete('/stories/:storyId', async (req: Request, res: Response, next: Nex
 router.post('/stories/:storyId/tasks', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const storyId = req.params.storyId as string;
-    const { sessionId, title, description } = req.body;
+    const { sessionId, title, description } = req.body || {};
 
     // Validate input
     if (!sessionId) {
@@ -166,6 +166,33 @@ router.delete('/tasks/:taskId', async (req: Request, res: Response, next: NextFu
 });
 
 /**
+ * PUT /api/tasks/:taskId/estimate
+ * Confirm the final estimate for a task after votes are revealed
+ */
+router.put('/tasks/:taskId/estimate', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const taskId = req.params.taskId as string;
+    const { card } = req.body || {};
+
+    if (card === undefined || card === null || card === '') {
+      throw new ValidationError('Card is required', 'INVALID_CARD');
+    }
+
+    const task = await getStoryService().updateEstimate(taskId, card);
+
+    res.json({
+      id: task.id,
+      storyId: task.storyId,
+      title: task.title,
+      estimatePoints: task.estimatePoints,
+      status: task.status,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/sessions/:sessionSlug/hierarchy
  * Retrieve full session hierarchy (epics → stories → tasks)
  */
@@ -197,7 +224,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const sessionSlug = req.params.sessionSlug as string;
-      const { markdown } = req.body;
+      const { markdown } = req.body || {};
 
       // Validate input
       if (!markdown || markdown.trim().length === 0) {

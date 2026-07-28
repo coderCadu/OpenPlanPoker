@@ -20,7 +20,7 @@ describe('notificationHandlers', () => {
     eventListeners = {};
     const toEmit = jest.fn();
     socket = {
-      data: { sessionId: 'session-123', pseudonym: 'Alice' },
+      data: { sessionId: 'session-123', pseudonym: 'Alice', participantId: 'participant-abc' },
       on: jest.fn((event, handler) => {
         eventListeners[event] = handler;
         return socket as any;
@@ -48,7 +48,8 @@ describe('notificationHandlers', () => {
 
       expect(notificationService.broadcastParticipantJoined).toHaveBeenCalledWith(
         'session-123',
-        'Alice'
+        'Alice',
+        'participant-abc'
       );
       expect(logger.info).toHaveBeenCalled();
     });

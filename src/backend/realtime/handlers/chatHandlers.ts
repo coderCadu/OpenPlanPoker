@@ -3,7 +3,7 @@ import { ChatService } from '../../services/ChatService';
 import { logger } from '../../utils/logger';
 
 export function setupChatHandlers(socket: Socket, chatService: ChatService): void {
-  const { sessionId, pseudonym } = socket.data;
+  const { sessionId, pseudonym, participantId } = socket.data;
   const room = `session:${sessionId}`;
 
   socket.on('chat:send', async (data: { content: string }) => {
@@ -20,29 +20,29 @@ export function setupChatHandlers(socket: Socket, chatService: ChatService): voi
         return;
       }
 
-      const message = await chatService.saveMessage(sessionId, pseudonym, content);
+      const message = await chatService.saveMessage(sessionId, participantId, content);
 
       socket.to(room).emit('message:received', {
-        participantId: pseudonym,
+        participantId,
         pseudonym,
         content: message.content,
         timestamp: message.createdAt,
       });
 
       socket.emit('message:sent:self', {
-        participantId: pseudonym,
+        participantId,
         pseudonym,
         content: message.content,
         timestamp: message.createdAt,
       });
 
       logger.info(
-        { sessionId, participantId: pseudonym, contentLength: content.length },
+        { sessionId, participantId, pseudonym, contentLength: content.length },
         'Chat message sent via Socket'
       );
     } catch (error) {
       logger.error(
-        { error: String(error), sessionId, pseudonym },
+        { error: String(error), sessionId, participantId, pseudonym },
         'Failed to send chat message'
       );
 
