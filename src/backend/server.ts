@@ -15,11 +15,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Origins allowed to call the API / connect via WebSocket in addition to local dev.
+// Set ALLOWED_ORIGINS to a comma-separated list (e.g. your Vercel frontend URL) in production.
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  ...(process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+];
+
 // Create HTTP server for Socket.io
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
   },
 });
@@ -33,13 +46,9 @@ app.use(express.json());
 
 // CORS middleware
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const allowedOrigins = ['localhost', 'localhost:3000', 'localhost:5173', '127.0.0.1'];
   const origin = req.headers.origin || '';
 
-  if (
-    allowedOrigins.some((allowed) => origin.includes(allowed)) ||
-    process.env.NODE_ENV === 'development'
-  ) {
+  if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
     res.header('Access-Control-Allow-Origin', origin || '*');
   }
 
