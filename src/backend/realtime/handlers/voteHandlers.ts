@@ -4,7 +4,7 @@ import { NotificationService } from '../../services/NotificationService';
 import { logger } from '../../utils/logger';
 
 export function setupVoteHandlers(socket: Socket, voteService: VoteService, notificationService: NotificationService): void {
-  const { sessionId, pseudonym } = socket.data;
+  const { sessionId, pseudonym, participantId } = socket.data;
   const room = `session:${sessionId}`;
 
   socket.on('vote:cast', async (data: { taskId: string; card: string }) => {
@@ -26,12 +26,14 @@ export function setupVoteHandlers(socket: Socket, voteService: VoteService, noti
         return;
       }
 
-      const vote = await voteService.recordVote(taskId, pseudonym, sessionId, card);
+      const vote = await voteService.recordVote(taskId, participantId, sessionId, card);
 
+      // Do NOT include the card value here: other participants should only learn
+      // that a vote was cast, not its value, until votes are revealed (POKER-17).
       socket.to(room).emit('vote:recorded', {
         taskId,
-        participantId: pseudonym,
-        card,
+        participantId,
+        pseudonym,
         timestamp: new Date(),
       });
 
@@ -75,9 +77,9 @@ export function setupVoteHandlers(socket: Socket, voteService: VoteService, noti
 
       const vote = await voteService.updateVote(voteId, card);
 
+      // Same as vote:cast: don't leak the card value to other participants pre-reveal.
       socket.to(room).emit('vote:updated', {
         voteId,
-        card,
         timestamp: new Date(),
       });
 

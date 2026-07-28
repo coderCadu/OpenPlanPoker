@@ -6,13 +6,13 @@
   "scripts": {
     "build": "tsc",
     "build:frontend": "vite build",
-    "build:backend": "tsc",
+    "build:backend": "tsc -p tsconfig.backend.json",
     "test:backend": "jest src/backend --testPathIgnorePatterns='integration'",
     "test:frontend": "vitest --run src/frontend",
     "test:unit": "jest src/backend --testPathIgnorePatterns='integration' && vitest --run src/frontend",
     "test:integration": "jest --testPathPattern='integration.*\\.spec\\.ts$'",
     "test": "npm run test:unit && npm run test:integration",
-    "dev": "ts-node src/backend/server.ts",
+    "dev": "ts-node -P tsconfig.backend.json src/backend/server.ts",
     "dev:frontend": "vite",
     "preview": "vite preview",
     "lint": "tsc --noEmit"

@@ -37,6 +37,8 @@
       </div>
     </div>
 
+    <div v-if="error" class="error-message">{{ error }}</div>
+
     <div class="hierarchy-container">
       <div v-if="store.stories.length === 0" class="empty-state">
         <p>No stories yet. Add an epic to get started.</p>
@@ -99,14 +101,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useSessionStore } from '../stores/sessionStore'
+import type { Epic } from '../stores/sessionStore'
+import {
+  getHierarchy,
+  createEpic as apiCreateEpic,
+  deleteEpic as apiDeleteEpic,
+  createStory as apiCreateStory,
+  deleteStory as apiDeleteStory,
+  createTask as apiCreateTask,
+  deleteTask as apiDeleteTask,
+  importMarkdown as apiImportMarkdown,
+} from '../api/client'
 
 const store = useSessionStore()
 const fileInput = ref<HTMLInputElement>()
 const showAddEpicForm = ref(false)
 const expandedEpics = ref(new Set<string>())
 const expandedStories = ref(new Set<string>())
+const error = ref('')
 
 const epicForm = ref({
   title: '',
@@ -132,16 +146,54 @@ const toggleStory = (storyId: string) => {
   }
 }
 
+const loadHierarchy = async () => {
+  if (!store.activeSession) return
+  try {
+    const hierarchy = await getHierarchy(store.activeSession.slug)
+    store.stories = hierarchy.epics.map((epic): Epic => ({
+      id: epic.id,
+      title: epic.title,
+      description: epic.description || undefined,
+      stories: epic.stories.map(story => ({
+        id: story.id,
+        title: story.title,
+        description: story.description || undefined,
+        estimate: story.estimatePoints ?? undefined,
+        tasks: story.tasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description || undefined,
+          estimate: task.estimatePoints ?? undefined,
+        })),
+      })),
+    }))
+  } catch (err) {
+    error.value = 'Failed to load stories'
+  }
+}
+
+onMounted(loadHierarchy)
+watch(() => store.activeSession?.slug, (slug) => {
+  if (slug) loadHierarchy()
+})
+
 const addEpic = () => {
   if (!epicForm.value.title) return
-  store.addStory({
+  const newEpic = {
     id: `epic-${Date.now()}`,
     title: epicForm.value.title,
     description: epicForm.value.description,
     stories: []
-  })
+  }
+  store.addStory(newEpic)
   epicForm.value = { title: '', description: '' }
   showAddEpicForm.value = false
+
+  if (store.activeSession) {
+    apiCreateEpic(store.activeSession.id, newEpic.title, newEpic.description || undefined)
+      .then(() => loadHierarchy())
+      .catch(() => { error.value = 'Failed to save epic' })
+  }
 }
 
 const addStory = (epicId: string) => {
@@ -149,12 +201,19 @@ const addStory = (epicId: string) => {
   if (!title) return
   const epic = store.stories.find(e => e.id === epicId)
   if (!epic) return
-  epic.stories.push({
+  const newStory = {
     id: `story-${Date.now()}`,
     title,
     tasks: []
-  })
+  }
+  epic.stories.push(newStory)
   storyForm.value[epicId] = { title: '' }
+
+  if (store.activeSession) {
+    apiCreateStory(epicId, store.activeSession.id, title)
+      .then(() => loadHierarchy())
+      .catch(() => { error.value = 'Failed to save story' })
+  }
 }
 
 const addTask = (storyId: string) => {
@@ -163,11 +222,18 @@ const addTask = (storyId: string) => {
   for (const epic of store.stories) {
     const story = epic.stories.find(s => s.id === storyId)
     if (story) {
-      story.tasks.push({
+      const newTask = {
         id: `task-${Date.now()}`,
         title
-      })
+      }
+      story.tasks.push(newTask)
       taskForm.value[storyId] = { title: '' }
+
+      if (store.activeSession) {
+        apiCreateTask(storyId, store.activeSession.id, title)
+          .then(() => loadHierarchy())
+          .catch(() => { error.value = 'Failed to save task' })
+      }
       return
     }
   }
@@ -175,6 +241,7 @@ const addTask = (storyId: string) => {
 
 const deleteEpic = (epicId: string) => {
   store.stories = store.stories.filter(e => e.id !== epicId)
+  apiDeleteEpic(epicId).catch(() => { error.value = 'Failed to delete epic' })
 }
 
 const deleteStory = (storyId: string) => {
@@ -182,6 +249,7 @@ const deleteStory = (storyId: string) => {
     const idx = epic.stories.findIndex(s => s.id === storyId)
     if (idx >= 0) {
       epic.stories.splice(idx, 1)
+      apiDeleteStory(storyId).catch(() => { error.value = 'Failed to delete story' })
       return
     }
   }
@@ -193,6 +261,7 @@ const deleteTask = (taskId: string) => {
       const idx = story.tasks.findIndex(t => t.id === taskId)
       if (idx >= 0) {
         story.tasks.splice(idx, 1)
+        apiDeleteTask(taskId).catch(() => { error.value = 'Failed to delete task' })
         return
       }
     }
@@ -206,10 +275,17 @@ const triggerMarkdownImport = () => {
 const handleMarkdownImport = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
-  if (!file) return
+  if (!file || !store.activeSession) return
 
-  const content = await file.text()
-  // TODO: Parse markdown and import into store
+  try {
+    const content = await file.text()
+    await apiImportMarkdown(store.activeSession.slug, content)
+    await loadHierarchy()
+  } catch (err) {
+    error.value = 'Failed to import markdown'
+  } finally {
+    input.value = ''
+  }
 }
 
 const getTaskFormValue = (storyId: string): string => {
@@ -340,6 +416,14 @@ textarea:focus {
 
 textarea {
   resize: vertical;
+}
+
+.error-message {
+  padding: var(--space-md);
+  background-color: rgba(224, 120, 86, 0.12);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
 }
 
 .hierarchy-container {

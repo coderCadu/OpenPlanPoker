@@ -33,7 +33,7 @@ export { serviceWrapper };
  */
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, moderatorId, description } = req.body;
+    const { name, moderatorId, description } = req.body || {};
 
     // Validate input
     if (!name || !validateTitle(name)) {
@@ -73,6 +73,8 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
       throw new NotFoundError(`Session with slug "${slug}" not found`, 'SESSION_NOT_FOUND');
     }
 
+    const participants = await getSessionService().getParticipants(session.id);
+
     res.json({
       id: session.id,
       slug: session.slug,
@@ -82,6 +84,11 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
       status: session.status,
       createdAt: session.createdAt,
       lastActivityAt: session.lastActivityAt,
+      participants: participants.map((p) => ({
+        id: p.id,
+        pseudonym: p.pseudonym,
+        joinedAt: p.joinedAt,
+      })),
     });
   } catch (error) {
     next(error);
@@ -95,7 +102,7 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
 router.post('/:slug/join', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const slug = req.params.slug as string;
-    const { pseudonym } = req.body;
+    const { pseudonym } = req.body || {};
 
     // Validate input
     if (!pseudonym || !validatePseudonym(pseudonym)) {
@@ -129,7 +136,7 @@ router.post('/:slug/join', async (req: Request, res: Response, next: NextFunctio
 router.post('/:slug/leave', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const slug = req.params.slug as string;
-    const { pseudonym } = req.body;
+    const { pseudonym } = req.body || {};
 
     // Validate input
     if (!pseudonym || !validatePseudonym(pseudonym)) {
@@ -162,7 +169,7 @@ router.post('/:slug/leave', async (req: Request, res: Response, next: NextFuncti
 router.post('/:slug/close', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const slug = req.params.slug as string;
-    const { moderatorId } = req.body;
+    const { moderatorId } = req.body || {};
 
     // Find session
     const session = await getSessionService().getSessionBySlug(slug);

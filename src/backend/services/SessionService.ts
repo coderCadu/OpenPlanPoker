@@ -154,6 +154,22 @@ export class SessionService {
   }
 
   /**
+   * List all participants for a session
+   * @param sessionId Session ID
+   */
+  async getParticipants(sessionId: string): Promise<Participant[]> {
+    try {
+      return await prisma.participant.findMany({
+        where: { sessionId },
+        orderBy: { joinedAt: 'asc' },
+      });
+    } catch (error) {
+      logger.error({ error: String(error), sessionId }, 'Failed to list participants');
+      throw error;
+    }
+  }
+
+  /**
    * Close a session (no more votes allowed)
    * @param sessionId Session ID
    */

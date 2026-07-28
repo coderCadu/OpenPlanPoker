@@ -135,11 +135,12 @@ export class StoryService {
 
   /**
    * Get full hierarchy for a session
+   * @param sessionSlug Session slug (URL-friendly identifier)
    */
-  async getSessionHierarchy(sessionId: string): Promise<HierarchyNode | null> {
+  async getSessionHierarchy(sessionSlug: string): Promise<HierarchyNode | null> {
     try {
       const session = await prisma.session.findUnique({
-        where: { id: sessionId },
+        where: { slug: sessionSlug },
         include: {
           epics: {
             include: {
@@ -163,7 +164,7 @@ export class StoryService {
 
       return { epics: session.epics };
     } catch (error) {
-      logger.error({ error: String(error), sessionId }, 'Failed to get session hierarchy');
+      logger.error({ error: String(error), sessionSlug }, 'Failed to get session hierarchy');
       throw error;
     }
   }

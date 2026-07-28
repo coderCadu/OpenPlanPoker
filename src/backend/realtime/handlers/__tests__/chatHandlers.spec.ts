@@ -20,7 +20,7 @@ describe('chatHandlers', () => {
     eventListeners = {};
     const toEmit = jest.fn();
     socket = {
-      data: { sessionId: 'session-123', pseudonym: 'Alice' },
+      data: { sessionId: 'session-123', pseudonym: 'Alice', participantId: 'participant-abc' },
       on: jest.fn((event, handler) => {
         eventListeners[event] = handler;
         return socket as any;
@@ -57,15 +57,15 @@ describe('chatHandlers', () => {
       await handler({ content: 'Hello everyone' });
 
       expect(chatService.validateMessage).toHaveBeenCalledWith('Hello everyone');
-      expect(chatService.saveMessage).toHaveBeenCalledWith('session-123', 'Alice', 'Hello everyone');
+      expect(chatService.saveMessage).toHaveBeenCalledWith('session-123', 'participant-abc', 'Hello everyone');
       expect(toEmit).toHaveBeenCalledWith('message:received', {
-        participantId: 'Alice',
+        participantId: 'participant-abc',
         pseudonym: 'Alice',
         content: 'Hello everyone',
         timestamp: expect.any(Date),
       });
       expect(socket.emit).toHaveBeenCalledWith('message:sent:self', {
-        participantId: 'Alice',
+        participantId: 'participant-abc',
         pseudonym: 'Alice',
         content: 'Hello everyone',
         timestamp: expect.any(Date),

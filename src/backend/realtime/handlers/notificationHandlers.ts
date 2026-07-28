@@ -3,12 +3,12 @@ import { NotificationService } from '../../services/NotificationService';
 import { logger } from '../../utils/logger';
 
 export function setupNotificationHandlers(socket: Socket, notificationService: NotificationService): void {
-  const { sessionId, pseudonym } = socket.data;
+  const { sessionId, pseudonym, participantId } = socket.data;
   const room = `session:${sessionId}`;
 
   socket.on('participant:join', async () => {
     try {
-      notificationService.broadcastParticipantJoined(sessionId, pseudonym);
+      notificationService.broadcastParticipantJoined(sessionId, pseudonym, participantId);
 
       logger.info({ sessionId, pseudonym }, 'Participant join notification sent via Socket');
     } catch (error) {

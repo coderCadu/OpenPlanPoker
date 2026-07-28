@@ -75,6 +75,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useSessionStore } from '../stores/sessionStore'
+import {
+  createSession as apiCreateSession,
+  getSession as apiGetSession,
+  joinSession as apiJoinSession,
+  leaveSession as apiLeaveSession,
+  type SessionDto,
+} from '../api/client'
+import { connectSocket, disconnectSocket } from '../api/socket'
+import { registerSocketListeners } from '../api/socketListeners'
 
 const store = useSessionStore()
 const error = ref<string>('')
@@ -90,36 +99,69 @@ const joinForm = ref({
   pseudonym: ''
 })
 
+const errorMessage = (err: unknown, fallback: string): string => {
+  const anyErr = err as any
+  return anyErr?.response?.data?.error?.message || fallback
+}
+
+const enterSession = (session: SessionDto, pseudonym: string, participantId: string) => {
+  store.setSession({
+    id: session.id,
+    slug: session.slug,
+    name: session.name,
+    status: session.status === 'ACTIVE' ? 'active' : 'archived',
+    createdAt: new Date(session.createdAt || Date.now()),
+    updatedAt: new Date(session.lastActivityAt || session.createdAt || Date.now()),
+  })
+  store.setCurrentUser({ id: participantId, pseudonym })
+
+  session.participants?.forEach(p => {
+    store.addParticipant({ id: p.id, pseudonym: p.pseudonym, joinedAt: new Date(p.joinedAt) })
+  })
+  store.addParticipant({ id: participantId, pseudonym, joinedAt: new Date() })
+
+  const socket = connectSocket(session.slug, pseudonym)
+  registerSocketListeners(socket, store)
+}
+
 const createSession = async () => {
   try {
     error.value = ''
-    // TODO: Call API to create session
-    // const response = await axios.post('/api/sessions', createForm.value)
-    // store.setSession(response.data)
-    // store.setCurrentUser({ id: response.data.id, pseudonym: createForm.value.pseudonym })
+    const session = await apiCreateSession(
+      createForm.value.name,
+      createForm.value.pseudonym,
+      createForm.value.description || undefined
+    )
+    const participant = await apiJoinSession(session.slug, createForm.value.pseudonym)
+    enterSession(session, createForm.value.pseudonym, participant.id)
   } catch (err) {
-    error.value = 'Failed to create session'
+    error.value = errorMessage(err, 'Failed to create session')
   }
 }
 
 const joinSession = async () => {
   try {
     error.value = ''
-    // TODO: Call API to join session
-    // const response = await axios.post(`/api/sessions/${joinForm.value.slug}/join`, {
-    //   pseudonym: joinForm.value.pseudonym
-    // })
+    const session = await apiGetSession(joinForm.value.slug)
+    const participant = await apiJoinSession(joinForm.value.slug, joinForm.value.pseudonym)
+    enterSession(session, joinForm.value.pseudonym, participant.id)
   } catch (err) {
-    error.value = 'Failed to join session'
+    error.value = errorMessage(err, 'Failed to join session')
   }
 }
 
 const leaveSession = async (pseudonym: string) => {
   try {
+    if (!store.activeSession) return
+    await apiLeaveSession(store.activeSession.slug, pseudonym)
     store.removeParticipant(pseudonym)
-    // TODO: Call API to leave session
+
+    if (store.currentUser?.pseudonym === pseudonym) {
+      disconnectSocket()
+      store.clearSession()
+    }
   } catch (err) {
-    error.value = 'Failed to leave session'
+    error.value = errorMessage(err, 'Failed to leave session')
   }
 }
 </script>

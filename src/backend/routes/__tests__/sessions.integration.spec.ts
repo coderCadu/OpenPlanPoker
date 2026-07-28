@@ -30,6 +30,7 @@ beforeEach(() => {
   mockSessionService = {
     createSession: jest.fn(),
     getSessionBySlug: jest.fn(),
+    getParticipants: jest.fn().mockResolvedValue([]),
     joinSession: jest.fn(),
     leaveSession: jest.fn(),
     closeSession: jest.fn(),

@@ -2,6 +2,11 @@ import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { SessionService } from '../services/SessionService';
 import { NotificationService } from '../services/NotificationService';
+import { ChatService } from '../services/ChatService';
+import { VoteService } from '../services/VoteService';
+import { setupChatHandlers } from './handlers/chatHandlers';
+import { setupVoteHandlers } from './handlers/voteHandlers';
+import { setupNotificationHandlers } from './handlers/notificationHandlers';
 import { logger } from '../utils/logger';
 import { prisma } from '../config/database';
 
@@ -22,6 +27,10 @@ export function initializeSocketServer(
   io: SocketIOServer,
   sessionService: SessionService
 ): SocketIOServer {
+  const chatService = new ChatService();
+  const voteService = new VoteService();
+  const notificationService = new NotificationService(io);
+
   // Authentication middleware
   io.use(async (socket, next) => {
     try {
@@ -49,10 +58,20 @@ export function initializeSocketServer(
         return next(new Error(`Session "${slug}" is ${session.status.toLowerCase()}`));
       }
 
+      // Lookup participant record (must have joined via REST /join beforehand)
+      const participant = await prisma.participant.findUnique({
+        where: { sessionId_pseudonym: { sessionId: session.id, pseudonym } },
+      });
+
+      if (!participant) {
+        return next(new Error(`Participant "${pseudonym}" has not joined session "${slug}"`));
+      }
+
       // Store metadata for later use
       socket.data.sessionId = session.id;
       socket.data.pseudonym = pseudonym;
       socket.data.sessionSlug = slug;
+      socket.data.participantId = participant.id;
 
       logger.info({ sessionId: session.id, pseudonym }, 'Socket connection authenticated');
       next();
@@ -97,6 +116,11 @@ export function initializeSocketServer(
         pseudonym,
         timestamp: new Date(),
       });
+
+      // Register feature handlers (chat, voting, notifications) for this socket
+      setupChatHandlers(socket, chatService);
+      setupVoteHandlers(socket, voteService, notificationService);
+      setupNotificationHandlers(socket, notificationService);
 
       // Handle disconnect
       socket.on('disconnect', () => {

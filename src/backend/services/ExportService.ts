@@ -1,6 +1,7 @@
 import { prisma } from '../config/database';
 import { escapeMarkdown } from '../utils/markdown';
 import { logger } from '../utils/logger';
+import { NotFoundError } from '../utils/errors';
 
 /**
  * ExportService generates markdown exports from session data
@@ -8,11 +9,12 @@ import { logger } from '../utils/logger';
 export class ExportService {
   /**
    * Generate markdown from session hierarchy and estimates
+   * @param sessionSlug Session slug (URL-friendly identifier)
    */
-  async generateMarkdown(sessionId: string): Promise<string> {
+  async generateMarkdown(sessionSlug: string): Promise<string> {
     try {
       const session = await prisma.session.findUnique({
-        where: { id: sessionId },
+        where: { slug: sessionSlug },
         include: {
           participants: true,
           epics: {
@@ -30,7 +32,7 @@ export class ExportService {
       });
 
       if (!session) {
-        throw new Error(`Session not found: ${sessionId}`);
+        throw new NotFoundError(`Session not found: ${sessionSlug}`, 'SESSION_NOT_FOUND');
       }
 
       let markdown = '';
@@ -47,10 +49,10 @@ export class ExportService {
         markdown += this.formatEpic(epic);
       }
 
-      logger.info({ sessionId, length: markdown.length }, 'Markdown exported');
+      logger.info({ sessionSlug, length: markdown.length }, 'Markdown exported');
       return markdown;
     } catch (error) {
-      logger.error({ error: String(error), sessionId }, 'Failed to generate markdown');
+      logger.error({ error: String(error), sessionSlug }, 'Failed to generate markdown');
       throw error;
     }
   }

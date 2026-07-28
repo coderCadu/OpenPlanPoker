@@ -66,6 +66,7 @@ export const useSessionStore = defineStore('session', () => {
   const votes = ref<Vote[]>([])
   const chatMessages = ref<ChatMessage[]>([])
   const currentUser = ref<CurrentUser | null>(null)
+  const revealedTaskIds = ref<Set<string>>(new Set())
 
   const setSession = (newSession: Session) => {
     session.value = newSession
@@ -97,6 +98,18 @@ export const useSessionStore = defineStore('session', () => {
     stories.value.push(epic)
   }
 
+  const setVotesForTask = (taskId: string, taskVotes: Vote[]) => {
+    votes.value = votes.value.filter(v => v.taskId !== taskId).concat(taskVotes)
+  }
+
+  const markTaskRevealed = (taskId: string) => {
+    revealedTaskIds.value.add(taskId)
+  }
+
+  const isTaskRevealed = (taskId: string) => {
+    return revealedTaskIds.value.has(taskId)
+  }
+
   const clearSession = () => {
     session.value = null
     participants.value = []
@@ -104,6 +117,7 @@ export const useSessionStore = defineStore('session', () => {
     votes.value = []
     chatMessages.value = []
     currentUser.value = null
+    revealedTaskIds.value = new Set()
   }
 
   const activeSession = computed(() => session.value)
@@ -140,6 +154,7 @@ export const useSessionStore = defineStore('session', () => {
     votes,
     chatMessages,
     currentUser,
+    revealedTaskIds,
     setSession,
     addParticipant,
     removeParticipant,
@@ -147,6 +162,9 @@ export const useSessionStore = defineStore('session', () => {
     addVote,
     addMessage,
     addStory,
+    setVotesForTask,
+    markTaskRevealed,
+    isTaskRevealed,
     clearSession,
     activeSession,
     participantCount,
