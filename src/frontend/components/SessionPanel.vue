@@ -84,6 +84,7 @@ import {
 } from '../api/client'
 import { connectSocket, disconnectSocket } from '../api/socket'
 import { registerSocketListeners } from '../api/socketListeners'
+import { loadHierarchyIntoStore } from '../api/hierarchy'
 
 const store = useSessionStore()
 const error = ref<string>('')
@@ -122,6 +123,10 @@ const enterSession = (session: SessionDto, pseudonym: string, participantId: str
 
   const socket = connectSocket(session.slug, pseudonym)
   registerSocketListeners(socket, store)
+
+  loadHierarchyIntoStore(store).catch(() => {
+    error.value = 'Failed to load stories'
+  })
 }
 
 const createSession = async () => {

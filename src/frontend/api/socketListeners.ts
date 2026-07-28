@@ -1,6 +1,7 @@
 import type { Socket } from 'socket.io-client'
 import type { useSessionStore } from '../stores/sessionStore'
 import { getVotes } from './client'
+import { loadHierarchyIntoStore } from './hierarchy'
 
 type Store = ReturnType<typeof useSessionStore>
 
@@ -52,5 +53,11 @@ export function registerSocketListeners(socket: Socket, store: Store): void {
     } catch {
       // Non-fatal: the client who triggered reveal already has the data locally.
     }
+  })
+
+  socket.on('hierarchy:changed', () => {
+    loadHierarchyIntoStore(store).catch(() => {
+      // Non-fatal: the client who made the change already has the data locally.
+    })
   })
 }
