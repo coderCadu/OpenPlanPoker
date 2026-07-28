@@ -43,6 +43,25 @@ export function setupNotificationHandlers(socket: Socket, notificationService: N
     }
   });
 
+  socket.on('hierarchy:changed', async () => {
+    try {
+      socket.to(room).emit('hierarchy:changed', {
+        timestamp: new Date(),
+      });
+
+      logger.info({ sessionId, pseudonym }, 'Hierarchy change notification sent via Socket');
+    } catch (error) {
+      logger.error(
+        { error: String(error), sessionId, pseudonym },
+        'Failed to emit hierarchy changed event'
+      );
+
+      socket.emit('error:notification', {
+        message: error instanceof Error ? error.message : 'Failed to notify hierarchy change',
+      });
+    }
+  });
+
   socket.on('session:close', async () => {
     try {
       notificationService.broadcastSessionClosed(sessionId);

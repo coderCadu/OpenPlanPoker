@@ -103,9 +103,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useSessionStore } from '../stores/sessionStore'
-import type { Epic } from '../stores/sessionStore'
 import {
-  getHierarchy,
   createEpic as apiCreateEpic,
   deleteEpic as apiDeleteEpic,
   createStory as apiCreateStory,
@@ -114,6 +112,12 @@ import {
   deleteTask as apiDeleteTask,
   importMarkdown as apiImportMarkdown,
 } from '../api/client'
+import { loadHierarchyIntoStore } from '../api/hierarchy'
+import { getSocket } from '../api/socket'
+
+const notifyHierarchyChanged = () => {
+  getSocket()?.emit('hierarchy:changed')
+}
 
 const store = useSessionStore()
 const fileInput = ref<HTMLInputElement>()
@@ -149,24 +153,7 @@ const toggleStory = (storyId: string) => {
 const loadHierarchy = async () => {
   if (!store.activeSession) return
   try {
-    const hierarchy = await getHierarchy(store.activeSession.slug)
-    store.stories = hierarchy.epics.map((epic): Epic => ({
-      id: epic.id,
-      title: epic.title,
-      description: epic.description || undefined,
-      stories: epic.stories.map(story => ({
-        id: story.id,
-        title: story.title,
-        description: story.description || undefined,
-        estimate: story.estimatePoints ?? undefined,
-        tasks: story.tasks.map(task => ({
-          id: task.id,
-          title: task.title,
-          description: task.description || undefined,
-          estimate: task.estimatePoints ?? undefined,
-        })),
-      })),
-    }))
+    await loadHierarchyIntoStore(store)
   } catch (err) {
     error.value = 'Failed to load stories'
   }
@@ -191,7 +178,7 @@ const addEpic = () => {
 
   if (store.activeSession) {
     apiCreateEpic(store.activeSession.id, newEpic.title, newEpic.description || undefined)
-      .then(() => loadHierarchy())
+      .then(() => { loadHierarchy(); notifyHierarchyChanged() })
       .catch(() => { error.value = 'Failed to save epic' })
   }
 }
@@ -211,7 +198,7 @@ const addStory = (epicId: string) => {
 
   if (store.activeSession) {
     apiCreateStory(epicId, store.activeSession.id, title)
-      .then(() => loadHierarchy())
+      .then(() => { loadHierarchy(); notifyHierarchyChanged() })
       .catch(() => { error.value = 'Failed to save story' })
   }
 }
@@ -231,7 +218,7 @@ const addTask = (storyId: string) => {
 
       if (store.activeSession) {
         apiCreateTask(storyId, store.activeSession.id, title)
-          .then(() => loadHierarchy())
+          .then(() => { loadHierarchy(); notifyHierarchyChanged() })
           .catch(() => { error.value = 'Failed to save task' })
       }
       return
@@ -241,7 +228,9 @@ const addTask = (storyId: string) => {
 
 const deleteEpic = (epicId: string) => {
   store.stories = store.stories.filter(e => e.id !== epicId)
-  apiDeleteEpic(epicId).catch(() => { error.value = 'Failed to delete epic' })
+  apiDeleteEpic(epicId)
+    .then(notifyHierarchyChanged)
+    .catch(() => { error.value = 'Failed to delete epic' })
 }
 
 const deleteStory = (storyId: string) => {
@@ -249,7 +238,9 @@ const deleteStory = (storyId: string) => {
     const idx = epic.stories.findIndex(s => s.id === storyId)
     if (idx >= 0) {
       epic.stories.splice(idx, 1)
-      apiDeleteStory(storyId).catch(() => { error.value = 'Failed to delete story' })
+      apiDeleteStory(storyId)
+        .then(notifyHierarchyChanged)
+        .catch(() => { error.value = 'Failed to delete story' })
       return
     }
   }
@@ -261,7 +252,9 @@ const deleteTask = (taskId: string) => {
       const idx = story.tasks.findIndex(t => t.id === taskId)
       if (idx >= 0) {
         story.tasks.splice(idx, 1)
-        apiDeleteTask(taskId).catch(() => { error.value = 'Failed to delete task' })
+        apiDeleteTask(taskId)
+          .then(notifyHierarchyChanged)
+          .catch(() => { error.value = 'Failed to delete task' })
         return
       }
     }
@@ -281,6 +274,7 @@ const handleMarkdownImport = async (event: Event) => {
     const content = await file.text()
     await apiImportMarkdown(store.activeSession.slug, content)
     await loadHierarchy()
+    notifyHierarchyChanged()
   } catch (err) {
     error.value = 'Failed to import markdown'
   } finally {
