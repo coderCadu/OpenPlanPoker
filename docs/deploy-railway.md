@@ -11,9 +11,8 @@ on [Railway](https://railway.app) via `railway.json` at the repo root.
    - `DATABASE_URL` → reference the Postgres plugin's `DATABASE_URL`
      (Railway → Variables → "Add Reference" → `Postgres.DATABASE_URL`).
    - `NODE_ENV` → `production`
-   - `ALLOWED_ORIGINS` → comma-separated list of frontend origins allowed to
-     call the API / connect via WebSocket (e.g. your Vercel frontend URL).
    - `PORT` is provided automatically by Railway; no need to set it.
+   - Ensure CORS + Socket.io allowed origins include your frontend URL (currently hardcoded to localhost in `src/backend/server.ts`).
 4. Deploy. Railway builds with Nixpacks using the `build` config in
    `railway.json`:
    - `npm ci`
