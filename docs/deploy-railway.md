@@ -27,7 +27,7 @@ exposes.
 
 ## Frontend
 
-The frontend (Vite) is deployed separately, e.g. via `vercel.json` at the
-repo root. Point its `VITE_API_BASE_URL` / `VITE_SOCKET_URL` at the Railway
-service's public URL, and add that same URL to the backend's
-`ALLOWED_ORIGINS`.
+The frontend (Vite) is deployed separately (for example, on Vercel as a static site).
+Point its `VITE_API_BASE_URL` / `VITE_SOCKET_URL` at the Railway service's public URL,
+and update the backend CORS + Socket.io allowed origins in `src/backend/server.ts` to
+include that same frontend URL.
