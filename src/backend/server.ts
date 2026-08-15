@@ -17,16 +17,21 @@ const PORT = process.env.PORT || 3000;
 
 // Origins allowed to call the API / connect via WebSocket in addition to local dev.
 // Set ALLOWED_ORIGINS to a comma-separated list (e.g. your Vercel frontend URL) in production.
-const allowedOrigins = [
+const localDevOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5173',
-  ...(process.env.ALLOWED_ORIGINS || '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean),
 ];
+
+const extraOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+const allowedOrigins = process.env.NODE_ENV === 'development'
+  ? [...localDevOrigins, ...extraOrigins]
+  : extraOrigins;
 
 // Create HTTP server for Socket.io
 const httpServer = createServer(app);
