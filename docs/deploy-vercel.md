@@ -26,4 +26,4 @@ The frontend (Vue + Vite) deploys to [Vercel](https://vercel.com) using the
    `https://openplanpoker.vercel.app`) to the backend's `ALLOWED_ORIGINS`
    environment variable so CORS and Socket.io connections are accepted.
 
-See [`deploy-railway.md`](./deploy-railway.md) for the backend side.
+See the backend deployment docs for your hosting provider, and ensure the backend’s `ALLOWED_ORIGINS` includes your deployed Vercel URL so CORS and Socket.io connections are accepted.
